@@ -1,0 +1,36 @@
+# Ignore meme files
+meme-*/*
+
+# Ignore ipynb_checkpoint files
+.ipynb_checkpoints
+
+# Ignore plots
+*.png
+
+# Ignore all .txt and .csv files
+*.csv
+*.txt
+*.bed
+*.gz
+*.pdf
+*.vcf
+*.json
+*.html
+*.sh
+
+__pycache__
+
+# Ignore results files.
+results/*/*.html
+
+# Ignore all .pyc files
+*.pyc
+
+src/pipeline_setup/metadata/*
+
+# Do NOT ignore
+!readme.txt
+!assets/*
+!example_data/*/*.txt
+!requirements.txt
+!src/configs/*
