@@ -47,6 +47,11 @@ def create_new_structure(
         pid = row["pid"]
         cancer_type = row["cancer_type"]
         path_to_vcf = row["path_to_vcf"]
+        
+        if not os.path.exists(path_to_vcf):
+            print(f"{path_to_vcf} does not exist. Skipping...")
+            continue
+        
         if path_to_vcf != "not_available":
             # Create folder for single patient if this does not exist.
             path_to_single_patient_folder = os.path.join(path_to_patient_folders, f"{pid}_{cancer_type}")
@@ -59,7 +64,7 @@ def create_new_structure(
                 name_of_new_vcf = os.path.join(path_to_single_patient_folder, name_of_original_vcf.replace(".vcf", ending_of_original_files))
                 if not os.path.exists(name_of_new_vcf):
                     shutil.copy(path_to_vcf, name_of_new_vcf)
-    
+
     print(f".... Folder structure completed: {path_to_patient_folders} ")
 
 def create_json_file(

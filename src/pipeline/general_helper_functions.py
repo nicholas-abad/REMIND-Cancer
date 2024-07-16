@@ -95,28 +95,6 @@ def remove_nested_parens(input_str: str) -> str:
                 result.append(ch)
     return ''.join(result)
 
-
-def _remove_extra_parenthesis(gene: str):
-    """
-    Examples of Problem Genes:
-    problems = [
-        "EMILIN1(ENST00000380320.4:c.-28T>A)",
-        "ADPRHL1(ENST00000356501.4:c.*450A>C)",
-        "TNPO1(ENST00000337273.5:c.-124C>G,ENST00000454282.1:c.-124C>G)",
-        "NDUFB11(ENST00000377811.3:c.-753G>T),RBM10(ENST00000377604.3:c.-2050C>A,ENST00000329236.7:c.-2050C>A,ENST00000345781.6:c.-2050C>A)",
-        "COX6A1P2(dist=80875),PIM1(dist=43927)",
-        "SNORD112(dist=265649),MAFB(dist=3253)"
-    ]
-
-    Examples of Problem TFBS Created:
-    problems = [
-        "SMAD2::SMAD3::SMAD4",
-        "JUN(var.2)",
-        "Nr1h3::Rxra"
-    ]
-    """
-    return gene.split("(")[0]
-
 def _get_pid_from_structured_vcf_path(
     path_to_vcf: str,
     only_pid: bool=False
