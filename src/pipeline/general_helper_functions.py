@@ -95,6 +95,52 @@ def remove_nested_parens(input_str: str) -> str:
                 result.append(ch)
     return ''.join(result)
 
+def _update_timing_tracker(
+    path_to_vcf_file: str,
+    name_of_pipeline_step: str,
+    start_time: datetime,
+    end_time: datetime,
+    name_of_timing_tracker_file: str = "timing_tracker.json",
+):
+    # Ensure that name_of_timing_tracker_file ends with .json.
+    if not name_of_timing_tracker_file.endswith(".json"):
+        name_of_timing_tracker_file += ".json"
+    
+    # Get the path to the timing tracker.
+    path_to_timing_tracker = os.path.join(
+        os.path.dirname(path_to_vcf_file),
+        name_of_timing_tracker_file
+    )
+
+    # If the timing tracker does not exist, create it as an empty dictionary.
+    if not os.path.exists(path_to_timing_tracker):
+        with open(path_to_timing_tracker, "w") as f:
+            json.dump({}, f)
+            
+    # Load in the timing tracker.
+    with open(path_to_timing_tracker, "r") as f:
+        timing_tracker = json.load(f)
+        
+    # Create a key for the name of the pipeline step.
+    if name_of_pipeline_step not in timing_tracker:
+        timing_tracker[name_of_pipeline_step] = {
+            "start_time": [],
+            "end_time": [],
+            "difference": []
+        }
+        
+    # Calculate the difference and append these values to the dictionary.
+    timing_tracker[name_of_pipeline_step]["start_time"].append(start_time.strftime("%d-%m-%Y_%H:%M"))
+    timing_tracker[name_of_pipeline_step]["end_time"].append(end_time.strftime("%d-%m-%Y_%H:%M"))
+    
+    difference = end_time - start_time
+    timing_tracker[name_of_pipeline_step]["difference"].append(difference.total_seconds())
+    
+    # Overwrite the time tracker.
+    with open(path_to_timing_tracker, "w") as f:
+        json.dump(timing_tracker, f)
+    
+            
 def _get_pid_from_structured_vcf_path(
     path_to_vcf: str,
     only_pid: bool=False

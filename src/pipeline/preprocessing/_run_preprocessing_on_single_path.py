@@ -21,7 +21,7 @@ path_to_remind_cancer_folder = os.getcwd()
 if path_to_remind_cancer_folder not in sys.path:
     sys.path.append(path_to_remind_cancer_folder)
 
-from src.pipeline.general_helper_functions import _get_index, _get_pid_from_structured_vcf_path, execution_time
+from src.pipeline.general_helper_functions import _get_index, _get_pid_from_structured_vcf_path, execution_time, _update_timing_tracker
 
 @execution_time
 def _pcawg_rename_hugo_symbol_to_gene(
@@ -627,14 +627,13 @@ def _parse_master_file_for_purity(purity_file: str):
 
 
 @execution_time
-def _add_strand_information(path: str, config: dict):
+def _add_strand_information(path: str, gencode_path: str):
 
     # Load in the data.
     data = pd.read_csv(path, delimiter="\t")
     if "strand" in list(data.columns):
         return path
 
-    gencode_path = config["additional_files"]["tss_reference_file"]
     gencode_data = pd.read_csv(gencode_path, delimiter="\t")
 
     # Turn #chr in gencode_data into the same format as data.
@@ -674,7 +673,7 @@ def _add_strand_information(path: str, config: dict):
 
 @execution_time
 def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
-
+    
     # Define the pid, which is generated from the .vcf file.
     pid = _get_pid_from_structured_vcf_path(
         path_to_vcf=path_to_vcf_file,
@@ -688,7 +687,7 @@ def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
     gene_expression_measure = config["rnaseq_data"]["rnaseq_measurement"]
     name_of_tfbs_prediction_column = config["preprocessing_details"][
         "transcription_factor_prediction"]["name_of_tfbs_prediction_column_to_add"]
-
+ 
     # Load in the dataframes.
     rna_seq = pd.read_csv(path_to_rna_seq, delimiter="\t",
                           index_col="Unnamed: 0")
@@ -849,6 +848,132 @@ def _pcawg_add_sequence_context(
 
     return path_to_vcf_file
 
+@execution_time
+def _add_expression_to_gene_and_tf_of_prospective(
+    path_to_sample_vcf: str,
+    sample_config: dict,
+    path_to_sample_metadata: str  = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/single_file/2023_week02_to_week11_metadata_with_updated_cohort.csv",
+    path_to_prior_metadata: str  = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/MASTER_2022-10-16_13h03/master_metadata_2022-10-16_13h03.csv",
+    path_to_prior_expression_data: str  = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/MASTER_2022-10-16_13h03/ge_data/raw_fpkm_dataframe.tsv",
+): 
+    expression_measurement = sample_config["rnaseq_data"]["rnaseq_measurement"]
+
+    # Get the sample's dataframe.
+    sample_dataframe = pd.read_csv(path_to_sample_vcf, delimiter="\t")
+
+    # Ensure that the correct columns are in place within the sample's dataframe.
+    name_of_gene_column = "GENE"
+    name_of_jaspar_column = sample_config["preprocessing_details"]["transcription_factor_prediction"]["name_of_tfbs_prediction_column_to_add"]
+    assert name_of_gene_column in list(sample_dataframe.columns), f"{name_of_gene_column} is not in the columns of the dataframe."
+    assert name_of_jaspar_column in list(sample_dataframe.columns), f"{name_of_jaspar_column} is not in the columns of the dataframe."
+
+    # Get the cohort of the sample.
+    sample_metadata = pd.read_csv(path_to_sample_metadata)
+    pid = _get_pid_from_structured_vcf_path(path_to_sample_vcf, True)
+
+    pid_metadata_subset = sample_metadata[sample_metadata["pid"] == pid]
+    if pid_metadata_subset.shape[0] > 0:
+        sample_cohort = pid_metadata_subset.iloc[0]["cohort"]
+    else:
+        sample_cohort = "Anderes"
+
+    # Get the path to the sample's RNA-Seq file.
+    if pid_metadata_subset.shape[0] > 0:
+        sample_path_to_tsv = pid_metadata_subset.iloc[0]["path_to_tsv"]
+        if not os.path.exists(sample_path_to_tsv):
+            sample_path_to_tsv = "not_available"
+    else:
+        sample_path_to_tsv = "not_available"
+
+    # Load in the prior metadata of the dataset to compare the zscore to.
+    prior_metadata = pd.read_csv(path_to_prior_metadata)
+    prior_pids_in_same_cohort_as_sample = list(prior_metadata[prior_metadata["cohort"] == sample_cohort]["pid"].unique())
+    print(f"There are {len(prior_pids_in_same_cohort_as_sample)} retrospective pids in the same cohort.")
+
+    # Load in the prior raw expression file.
+    print(f"Loading in expression dataframe...")
+    prior_raw_fpkm = pd.read_csv(path_to_prior_expression_data, delimiter="\t")
+    prior_raw_fpkm = prior_raw_fpkm.rename({"Unnamed: 0": "pid"}, axis=1).set_index("pid")
+    print(f"... done.")
+
+    # Subset the prior raw expression dataframe to only include those within the same cohort as the sample.
+    prior_pids_in_same_cohort_as_sample_in_index = [pid for pid in prior_pids_in_same_cohort_as_sample if pid in list(prior_raw_fpkm.index)]
+    print(f"Of the {len(prior_pids_in_same_cohort_as_sample)} retrospective pids, {len(prior_pids_in_same_cohort_as_sample_in_index)} have expression data available within the expression dataframe.")
+
+    cohort_prior_raw_fpkm = prior_raw_fpkm.loc[prior_pids_in_same_cohort_as_sample_in_index]
+
+    # Load in the sample's RNA-Seq file.
+    if os.path.exists(sample_path_to_tsv):
+        samples_rnaseq = pd.read_csv(sample_path_to_tsv, delimiter="\t")
+
+        # Create a dictionary from the sample's gene to it's expression_measurement.
+        sample_expression_dictionary = {}
+        for idx, row in samples_rnaseq.iterrows():
+            gene_name = row["name"]
+            sample_expression_dictionary[gene_name] = float(row[expression_measurement])
+        print(f"There are total of {len(sample_expression_dictionary.keys())} genes with expression of the sample.")
+
+        # Create a brand new row in the cohort_prior_raw_fpkm that adds the sample's expression.
+        for gene_name in tqdm(cohort_prior_raw_fpkm.columns, desc="Adding the sample's expression:"):
+            try:
+                cohort_prior_raw_fpkm.loc[pid, gene_name] = sample_expression_dictionary[gene_name]
+            except:
+                cohort_prior_raw_fpkm.loc[pid, gene_name] = 0
+
+        # Compute the z-score per gene.
+        cohort_prior_zscore_fpkm = zscore(cohort_prior_raw_fpkm, axis=0).fillna(0)
+
+        # Create a dictionary for the sample for gene/TF to expression.
+        samples_expression_dictionary = {}
+
+        for gene in tqdm(cohort_prior_zscore_fpkm.columns, desc="Creating raw/zscore expression dict for sample:"):
+            samples_expression_dictionary[gene] = {
+                "raw": cohort_prior_raw_fpkm.loc[pid, gene],
+                "zscore": cohort_prior_zscore_fpkm.loc[pid, gene]
+            }
+
+    # At the gene level, add the raw expression and zscore.
+    for idx, row in tqdm(sample_dataframe.iterrows(), desc = "1. Adding gene-level expression", total=sample_dataframe.shape[0]):
+        gene = row["GENE"]
+
+        if os.path.exists(sample_path_to_tsv):
+            sample_dataframe.loc[idx, expression_measurement] = samples_expression_dictionary[gene]["raw"] if gene_name in samples_expression_dictionary else "not_available"
+            sample_dataframe.loc[idx, f"{expression_measurement}_Z_score"] = samples_expression_dictionary[gene]["zscore"]  if gene_name in samples_expression_dictionary else "not_available"
+        else:
+            sample_dataframe.loc[idx, expression_measurement] = "not_available"
+            sample_dataframe.loc[idx, f"{expression_measurement}_Z_score"] = "not_available"
+
+    # At the TF level, add the raw expression, zscore and log.
+    for idx, row in tqdm(sample_dataframe.iterrows(), desc = "2. Add TF-level expression", total=sample_dataframe.shape[0]):
+        transcription_factor_column = row[name_of_jaspar_column]
+
+        new_transcription_factor_column = ""
+
+        if transcription_factor_column == ".":
+            new_transcription_factor_column = "."
+        else:
+            for entry in transcription_factor_column.split(";"):
+                tf_name, binding_affinity, ref_seq, alt_seq = entry.split(",")
+                if os.path.exists(sample_path_to_tsv):
+                    if tf_name in samples_expression_dictionary:
+                        tf_raw = str(float(samples_expression_dictionary[tf_name]["raw"])) if samples_expression_dictionary[tf_name]["raw"] != "not_available" else "not_available"
+                        tf_zscore = str(float(samples_expression_dictionary[tf_name]["zscore"])) if samples_expression_dictionary[tf_name]["zscore"] != "not_available" else "not_available"
+                        tf_log = str(np.log(float(samples_expression_dictionary[tf_name]["raw"]))) if samples_expression_dictionary[tf_name]["raw"] != "not_available" else "not_available"
+                    else:
+                        tf_raw, tf_zscore, tf_log = "not_available", "not_available", "not_available"
+                else:
+                    tf_raw, tf_zscore, tf_log = "not_available", "not_available", "not_available"
+
+                new_transcription_factor_column += f"{tf_name},{binding_affinity},{ref_seq},{alt_seq},{tf_raw},{tf_zscore},{tf_log};"
+
+            new_transcription_factor_column = new_transcription_factor_column[:-1]
+        sample_dataframe.loc[idx, f"{name_of_jaspar_column}(tf_name,binding_affinity,seq1,seq2,raw,zscore,log)"] = new_transcription_factor_column
+        
+    sample_dataframe.to_csv(
+        path_to_sample_vcf,
+        sep="\t", index=False,
+    )
+
 
 @execution_time
 def main(
@@ -856,6 +981,7 @@ def main(
     config: dict
 ):
     dataset = config["pipeline"]["dataset"]
+    prospective = config["pipeline"]["prospective"]
 
     # Rename the .vcf file to have the suffix.
     suffix_to_append_to_vcf = config["preprocessing_details"]["suffix_to_append_to_vcf"]
@@ -891,7 +1017,7 @@ def main(
         preprocessed_filename, config["pipeline"]["dataset"])
 
     preprocessed_filename = _add_strand_information(
-        preprocessed_filename, config)
+        preprocessed_filename, config["additional_files"]["tss_reference_file"])
 
     preprocessed_filename = run_fimo(
         path_to_vcf_file=preprocessed_filename,
@@ -907,11 +1033,19 @@ def main(
         preprocessed_filename,
         config["preprocessing_details"]["transcription_factor_prediction"]["name_of_tfbs_prediction_column_to_add"]
     )
-
-    preprocessed_filename = _add_ge_data_to_genes_and_transcription_factors(
-        preprocessed_filename,
-        config
-    )
+    if prospective:
+        preprocessed_filename = _add_expression_to_gene_and_tf_of_prospective(
+            path_to_sample_vcf = preprocessed_filename,
+            sample_config = config,
+            path_to_sample_metadata = config["pipeline"]["path_to_metadata"],
+            path_to_prior_metadata  = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/MASTER_2022-10-16_13h03/master_metadata_2022-10-16_13h03.csv",
+            path_to_prior_expression_data = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/MASTER_2022-10-16_13h03/ge_data/raw_fpkm_dataframe.tsv",
+        )
+    else:
+        preprocessed_filename = _add_ge_data_to_genes_and_transcription_factors(
+            preprocessed_filename,
+            config
+        )
 
 
 if __name__ == "__main__":
@@ -937,8 +1071,21 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as f:
         config = json.load(f)
 
+    start_time = datetime.now()
+    
     main(
         path_to_vcf_file=path_to_vcf_file,
         config=config
     )
+    
+    end_time = datetime.now()
+    
+    _update_timing_tracker(
+        path_to_vcf_file = path_to_vcf_file,
+        name_of_pipeline_step = "preprocessing",
+        start_time = start_time,
+        end_time = end_time,
+        name_of_timing_tracker_file = "timing_tracker.json",
+    )
+    
     print("~~Finished with preprocessing~~")

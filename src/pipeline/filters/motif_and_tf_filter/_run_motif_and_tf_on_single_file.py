@@ -3,6 +3,7 @@ import pandas as pd
 from tqdm import tqdm
 from optparse import OptionParser
 import os
+from datetime import datetime
 
 # For proper import structure:
 import sys
@@ -10,7 +11,7 @@ path_to_remind_cancer_folder = os.getcwd()
 if path_to_remind_cancer_folder not in sys.path:
     sys.path.append(path_to_remind_cancer_folder)
 
-from src.pipeline.general_helper_functions import execution_time
+from src.pipeline.general_helper_functions import execution_time, _update_timing_tracker
 
 def _get_tfs_passing_motif_and_tf_expression_filters(
     transcription_factor_entries: str,
@@ -270,10 +271,22 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as f:
         config = json.load(f)
     
+    start_time = datetime.now()
+    
     main(
         path_to_vcf_file = path_to_vcf_file,
         config = config
     )
+    
+    end_time = datetime.now()
+    
+    _update_timing_tracker(
+        path_to_vcf_file = path_to_vcf_file,
+        name_of_pipeline_step = "tfbs_motif_and_tf_expression",
+        start_time = start_time,
+        end_time = end_time,
+        name_of_timing_tracker_file = "timing_tracker.json",
+    ) 
     
     print("~~ Finished with Motif and TF Expression filter ~~")
     

@@ -135,6 +135,8 @@ def main(path_to_config: str):
                     'H021-EBYSD9',
                     'H021-XJTUSV',
                     # PCAWG
+                    "e2774050-1257-4c29-b201-d79ce70fe17e",
+                    "b07bad52-d44c-4b27-900a-960985bfadec",
                     "04aa6b77-8074-480c-872e-a1a47afa5314", # Done
                     "0980e7fd-051d-45e9-9ca6-2baf073da4e8", # Done
                     "c8e961b4-e324-40a2-89f6-736ec3845bc9", # Done
