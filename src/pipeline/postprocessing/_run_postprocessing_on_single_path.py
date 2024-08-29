@@ -7,6 +7,8 @@ import numpy as np
 from scipy.stats import zscore
 from optparse import OptionParser
 
+from datetime import datetime
+
 # For proper import structure:
 import sys
 path_to_remind_cancer_folder = os.getcwd()
@@ -16,7 +18,8 @@ if path_to_remind_cancer_folder not in sys.path:
 from src.pipeline.general_helper_functions import (
     _get_number_of_lines, 
     _get_pid_from_structured_vcf_path, 
-    _create_cohort_dictionary
+    _create_cohort_dictionary,
+    _update_timing_tracker
 )
 
 
@@ -453,16 +456,16 @@ def main(
 
     patient_cohort_dictionary = _create_cohort_dictionary(path_to_metadata)
 
-    data = _add_expression_traces_for_pSNV_hunter(
-        dataframe=data,
-        pid=pid,
-        cohort_of_patient=cohort_of_patient,
-        recurrence_column_name=recurrence_column_name,
-        jaspar_column_name=jaspar_column_name,
-        path_to_metadata=path_to_metadata,
-        dataset=dataset,
-        path_to_rnaseq_dataframe=path_to_rnaseq_dataframe,
-    )
+    # data = _add_expression_traces_for_pSNV_hunter(
+    #     dataframe=data,
+    #     pid=pid,
+    #     cohort_of_patient=cohort_of_patient,
+    #     recurrence_column_name=recurrence_column_name,
+    #     jaspar_column_name=jaspar_column_name,
+    #     path_to_metadata=path_to_metadata,
+    #     dataset=dataset,
+    #     path_to_rnaseq_dataframe=path_to_rnaseq_dataframe,
+    # )
 
     # Add the total number of recurrent mutations.
     print("Adding the _total_ number of recurrent mutations.")
@@ -514,8 +517,21 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as f:
         config = json.load(f)
 
+    start_time = datetime.now()
+
     main(
         path_to_vcf_file=path_to_vcf_file,
         config=config
     )
+    
+    end_time = datetime.now()
+    
+    _update_timing_tracker(
+        path_to_vcf_file = path_to_vcf_file,
+        name_of_pipeline_step = "postprocessing",
+        start_time = start_time,
+        end_time = end_time,
+        name_of_timing_tracker_file = "timing_tracker.json",
+    )
+    
     print("~~Finished with postprocessing~~")

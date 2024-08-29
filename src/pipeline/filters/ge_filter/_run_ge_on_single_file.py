@@ -2,6 +2,7 @@ import pandas as pd
 import os
 from optparse import OptionParser
 import json
+from datetime import datetime
 
 # For proper import structure:
 import sys
@@ -9,7 +10,7 @@ path_to_remind_cancer_folder = os.getcwd()
 if path_to_remind_cancer_folder not in sys.path:
     sys.path.append(path_to_remind_cancer_folder)
     
-from src.pipeline.general_helper_functions import execution_time
+from src.pipeline.general_helper_functions import execution_time, _update_timing_tracker
 
 
 
@@ -91,9 +92,21 @@ if __name__ == "__main__":
     with open(path_to_config, "r") as f:
         config = json.load(f)
 
+    start_time = datetime.now()
+    
     main(
         path_to_vcf_file=path_to_vcf_file,
         config=config
+    )
+    
+    end_time = datetime.now()
+    
+    _update_timing_tracker(
+        path_to_vcf_file = path_to_vcf_file,
+        name_of_pipeline_step = "ge_filter",
+        start_time = start_time,
+        end_time = end_time,
+        name_of_timing_tracker_file = "timing_tracker.json",
     )
 
     print("~~ Finished with GE filter ~~")

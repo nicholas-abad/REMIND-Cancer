@@ -52,7 +52,7 @@ def create_new_structure(
             print(f"{path_to_vcf} does not exist. Skipping...")
             continue
         
-        if path_to_vcf != "not_available":
+        if (path_to_vcf != "not_available") and (os.path.exists(path_to_vcf)):
             # Create folder for single patient if this does not exist.
             path_to_single_patient_folder = os.path.join(path_to_patient_folders, f"{pid}_{cancer_type}")
             if not os.path.exists(path_to_single_patient_folder):
