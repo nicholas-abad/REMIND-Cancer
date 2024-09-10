@@ -14,7 +14,8 @@ meme-*/*
 __pycache__
 
 # Ignore results files.
-results/*/*.html
+examples/results/data/*
+examples/results/*.csv
 
 # Ignore all .pyc files
 *.pyc

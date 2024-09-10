@@ -43,7 +43,7 @@ if __name__ == "__main__":
             # create_initial_structure.main(options.config)
         elif step.lower() == "preprocessing":
             print("####### preprocessing #######")
-            run_preprocessing_on_all_paths.main(options.config)
+            # run_preprocessing_on_all_paths.main(options.config)
         else:
             assert False, f"The step '{step}' does not exist."
 
@@ -52,13 +52,13 @@ if __name__ == "__main__":
     for filter in filter_order:
         if filter.lower() == "promoter_filter":
             print("####### promoter_filter #######")
-            run_promoter_on_all_paths.main(options.config)
+            # run_promoter_on_all_paths.main(options.config)
         elif filter.lower() == "ge_filter":
             print(" ####### GE FILTER ########")
-            run_ge_on_all_paths.main(options.config)
+            # run_ge_on_all_paths.main(options.config)
         elif filter.lower() == "motif_and_tf_expression_filter":
             print(" ####### MOTIF AND TF EXPRESSION FILTER ########")
-            run_all_motif_and_tf_expression_on_all_paths.main(options.config)
+            # run_all_motif_and_tf_expression_on_all_paths.main(options.config)
         else:
             assert False, f"The filter '{filter}' does not exist."
     

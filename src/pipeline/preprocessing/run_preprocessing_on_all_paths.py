@@ -1,6 +1,7 @@
 import json
 import os
 from tqdm import tqdm
+import subprocess
 
 from optparse import OptionParser
 
@@ -61,7 +62,7 @@ def main(path_to_config: str):
         for path in tqdm(paths, total=len(paths), desc=key):
 
             command = f"python {path_to_single_file_script} --path-to-vcf-file {path} --config {path_to_config}"
-
+            print(command)
             if run_on_cluster:
                 _wait_for_running_and_pending_lsf_cluster_jobs(
                     maximum_number_of_jobs = 300,
@@ -90,7 +91,12 @@ def main(path_to_config: str):
                     )
 
             else:
-                os.popen(command)
+                # Use Popen to execute the command and stream the output in real-time
+                with subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as proc:
+                    for line in proc.stdout:
+                        print(line, end='')  # Print the output in real-time
+                    for err in proc.stderr:
+                        print(err, end='')   # Print any error messages in real-time
             
         if run_on_cluster:
             _wait_for_running_and_pending_lsf_cluster_jobs(

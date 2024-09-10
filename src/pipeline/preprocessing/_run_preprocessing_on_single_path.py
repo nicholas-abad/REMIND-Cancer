@@ -436,6 +436,10 @@ def _add_processed_fimo_output_to_vcf(
     name_of_jaspar_column: str,
 ):
     data = pd.read_csv(path_to_vcf_file, delimiter="\t")
+    
+    if name_of_jaspar_column not in list(data.columns):
+        data[name_of_jaspar_column] = ""
+    data[name_of_jaspar_column] = data[name_of_jaspar_column].astype('object')
 
     for idx in tfbs_dictionary:
         jaspar_entry = ""
@@ -663,12 +667,15 @@ def _add_purity_information(
     elif dataset == "pcawg":
         # Define the purity files.
         path_to_pcawg_purity_file = config["additional_files"]["pcawg"]["path_to_purity_file"]
+        
+        # Load in the dataset.
+        data = pd.read_csv(path_to_vcf, delimiter="\t")
+        
         if os.path.exists(path_to_pcawg_purity_file):
             # Get the PCAWG pid of this file.
             pid = _get_pid_from_structured_vcf_path(path_to_vcf, True)
 
-            # Load in the dataset and the purity file.
-            data = pd.read_csv(path_to_vcf, delimiter="\t")
+            # Load in the purity file.
             purity_df = pd.read_csv(path_to_pcawg_purity_file, delimiter="\t")
 
             # Check if purity already exists as a column.
@@ -809,7 +816,8 @@ def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
         f"Number of pids within patient cohort with RNA-Seq: {len(pids_within_patient_cohort_with_rna_seq)}")
 
     #### (1) Add gene expression ####
-
+    data[f"{name_of_tfbs_prediction_column}(tf_name,binding_affinity,seq1,seq2,raw,zscore,log)"] = ""
+    
     # Check if the pid has corresponding RNA-seq data available.
     if pid not in pids_within_patient_cohort_with_rna_seq:
         data[gene_expression_measure] = "not_available"
@@ -1069,6 +1077,7 @@ def main(
     path_to_vcf_file: str,
     config: dict
 ):
+    print('here')
     dataset = config["pipeline"]["dataset"]
     prospective = config["pipeline"]["prospective"]
 
@@ -1091,23 +1100,31 @@ def main(
         preprocessed_filename = _pcawg_add_sequence_context(
             preprocessed_filename, path_to_hg19_reference)
 
+    print('1')
     preprocessed_filename = _fix_gene_names(preprocessed_filename)
 
+    print(2)
     preprocessed_filename = _remove_lines_with_no_gene(preprocessed_filename)
 
+    print(3)
     preprocessed_filename = _remove_indels(preprocessed_filename)
 
+    print(4)
     preprocessed_filename = _remove_snp_and_germline(preprocessed_filename)
 
+    print(5)
     preprocessed_filename = _add_purity_information(
         preprocessed_filename, config)
 
+    print(6)
     preprocessed_filename = _add_vaf_information_to_final_vcf_files(
         preprocessed_filename, config["pipeline"]["dataset"])
 
+    print(7)
     preprocessed_filename = _add_strand_information(
         preprocessed_filename, config["additional_files"]["tss_reference_file"])
 
+    print(8)
     preprocessed_filename = run_fimo(
         path_to_vcf_file=preprocessed_filename,
         path_to_fimo=config["preprocessing_details"]["transcription_factor_prediction"]["path_to_fimo_executable"],
@@ -1118,6 +1135,7 @@ def main(
         save_tfbs_dict=config["preprocessing_details"]["transcription_factor_prediction"],
     )
 
+    print(9)
     preprocessed_filename = _fix_transcription_factor_names(
         preprocessed_filename,
         config["preprocessing_details"]["transcription_factor_prediction"]["name_of_tfbs_prediction_column_to_add"]
@@ -1131,6 +1149,7 @@ def main(
             path_to_prior_expression_data = "/omics/groups/OE0436/internal/nabad/_final_results_29March2024/MASTER_2022-10-16_13h03/ge_data/raw_fpkm_dataframe.tsv",
         )
     else:
+        print(10)
         preprocessed_filename = _add_ge_data_to_genes_and_transcription_factors(
             preprocessed_filename,
             config
@@ -1156,6 +1175,8 @@ if __name__ == "__main__":
 
     path_to_vcf_file = options.path_to_vcf_file
     path_to_config = options.config
+    
+    print('gets here!')
 
     with open(path_to_config, "r") as f:
         config = json.load(f)

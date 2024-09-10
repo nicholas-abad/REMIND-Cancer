@@ -1,6 +1,7 @@
 import json
 import os
 from tqdm import tqdm
+import subprocess
 
 from optparse import OptionParser
 
@@ -77,7 +78,12 @@ def main(path_to_config: str):
                 # job_ids_to_wait_for.append(job_id)
 
             else:
-                os.popen(command)
+                # Use Popen to execute the command and stream the output in real-time
+                with subprocess.Popen(command.split(" "), stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True) as proc:
+                    for line in proc.stdout:
+                        print(line, end='')  # Print the output in real-time
+                    for err in proc.stderr:
+                        print(err, end='')   # Print any error messages in real-time
 
         # _wait_for_bsub_jobs_completion(job_ids_to_wait_for, wait_time=5)
 

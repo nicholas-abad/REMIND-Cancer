@@ -19,37 +19,37 @@
         "post_pipeline_steps": [
             "postprocessing"
         ],
-        "path_to_results": "/home/n795d/workspace/REMIND-Cancer/results.json",
-        "path_to_metadata": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/metadata_50.csv",
-        "run_on_cluster": true
+        "path_to_results": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/results/results.json",
+        "path_to_metadata": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/metadata_with_local.csv",
+        "run_on_cluster": false
     },
     "pipeline_folder_setup": {
         "pcawg":{
-            "output_path_to_patient_folders": "/home/n795d/workspace/REMIND-Cancer/examples/results/data"
+            "output_path_to_patient_folders": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/results/data"
         }
     },
     "rnaseq_data": {
         "rnaseq_measurement": "FPKM",
         "pcawg": {
-            "path_to_rnaseq_dataframe": "/home/n795d/workspace/REMIND-Cancer/examples/data/rna_seq_data/_fpkm_dataframe.csv"
+            "path_to_rnaseq_dataframe": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/rna_seq_data/_fpkm_dataframe.csv"
         }
     },
     "additional_files": {
         "pcawg": {
             "path_to_purity_file": "not_available"
         },
-        "tss_reference_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/gencodev19_with_promoter_start_and_end.csv"
+        "tss_reference_file": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/gencodev19_with_promoter_start_and_end.csv"
     },
     "preprocessing_details": {
         "suffix_to_append_to_vcf": "_after_preprocessing.vcf",
         "transcription_factor_prediction": {
-            "path_to_fimo_executable": "/home/n795d/meme/bin/fimo",
-            "path_to_jaspar_database": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/JASPAR2020_CORE_vertebrates_non-redundant_pfms_meme.txt",
+            "path_to_fimo_executable": "/Users/nicholasabad/meme/bin/fimo",
+            "path_to_jaspar_database": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/JASPAR2020_CORE_vertebrates_non-redundant_pfms_meme.txt",
             "name_of_tfbs_prediction_column_to_add": "JASPAR2020_CORE_vertebrates_non-redundant",
             "save_tfbs_dictionary": true
         },
         "pcawg": {
-            "path_to_genome_reference_fa_file": "/omics/groups/OE0436/data/nabad/hg19.fa"
+            "path_to_genome_reference_fa_file": ""
         }
     },
     "promoter": {
@@ -79,19 +79,19 @@
     },
     "open_chromatin": {
         "suffix_to_append_to_vcf": "_with_chromatin_info.vcf",
-        "path_to_chromhmm_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/chromhmm_reduced.bed"
+        "path_to_chromhmm_file": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/chromhmm_reduced.bed"
     },
     "cgc": {
         "suffix_to_append_to_vcf": "_with_cgc_info.vcf",
-        "path_to_cgc_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/cgc_list_Nov_11_15_24_06_2020.csv"
+        "path_to_cgc_file": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/cgc_list_Nov_11_15_24_06_2020.csv"
     },
     "post_processing": {
         "suffix_to_append_to_vcf": "_after_postprocessing.vcf",
         "transcription_factor_information": {
-            "path_to_downloaded_jaspar_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/jaspar_tfs.json"
+            "path_to_downloaded_jaspar_file": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/jaspar_tfs.json"
         },
         "ncbi_information": {
-            "path_to_gene_name_and_description_file": "examples/data/annotations/gene_name_to_id_and_summary.json"
+            "path_to_gene_name_and_description_file": "/Users/nicholasabad/Desktop/workspace/REMIND-Cancer/examples/data/annotations/gene_name_to_id_and_summary.json"
         }
     },
     "REMIND-Cancer_scoring_weights": {
