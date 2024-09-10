@@ -26,7 +26,21 @@ from src.pipeline.general_helper_functions import _get_index, _get_pid_from_stru
 @execution_time
 def _pcawg_rename_hugo_symbol_to_gene(
     path_to_single_vcf: str
-):
+) -> str:
+    """Rename the column "Hugo_Symbol" to "GENE".
+    This occurs within the PCAWG dataset.
+
+    Parameters
+    ----------
+    path_to_single_vcf : str
+        Path to the single .vcf file.
+
+    Returns
+    -------
+    str
+        Path to the single .vcf file.
+    """
+    
     data = pd.read_csv(path_to_single_vcf, delimiter="\t")
 
     if "Hugo_Symbol" in list(data.columns):
@@ -37,10 +51,10 @@ def _pcawg_rename_hugo_symbol_to_gene(
 
 
 @execution_time
-def _fix_problematic_genes(path_to_single_vcf: str):
-    """Fix the problem in regards to genes and their names.
+def _fix_gene_names(path_to_single_vcf: str):
+    """Preprocess gene names.
 
-    To exemplify this problem, in the original .vcf files, there are mutations within genes that have the following names:
+    Examples of problematic gene names:
     (1) "EMILIN1(ENST00000380320.4:c.-28T>A)"
     (2) "TNPO1(ENST00000337273.5:c.-124C>G,ENST00000454282.1:c.-124C>G)"
     (3) "NDUFB11(ENST00000377811.3:c.-753G>T),RBM10(ENST00000377604.3:c.-2050C>A,ENST00000329236.7:c.-2050C>A,ENST00000345781.6:c.-2050C>A)"
@@ -51,12 +65,11 @@ def _fix_problematic_genes(path_to_single_vcf: str):
     For example, here would be the gene names of the above examples:
     (1) "EMILIN1"
     (2) "TNPO1"
-    (3) "NDUFB11,RBM10" -> (results in 2 separate lines)
-    (4) "COX6A1P2,PIM1" -> (results in 2 separate lines)
+    (3) "NDUFB11" in one line and "RBM10" in a new line with exact information except gene name.
+    (4) "COX6A1P2" in one line and "PIM1" in a new line with exact information except gene name.
 
     """ ""
-    assert os.path.exists(
-        path_to_single_vcf), f"_fix_problematic_genes -> Cannot read in {path_to_single_vcf}"
+    assert os.path.exists(path_to_single_vcf), f"_fix_gene_names -> Cannot read in {path_to_single_vcf}"
 
     data = pd.read_csv(path_to_single_vcf, delimiter="\t")
 
@@ -87,31 +100,57 @@ def _fix_problematic_genes(path_to_single_vcf: str):
 
 
 @execution_time
-def _remove_lines_with_no_gene(path_to_single_vcf: str):
+def _remove_lines_with_no_gene(
+    path_to_single_vcf: str,
+    unknown_gene_names: list[str] = ["NONE", "Unknown"]
+) -> str:
+    
+    """Remove rows within a .vcf file with and unknown gene name.
+    Because we're only looking at promoter SNVs that effect genes,
+    for computational purposes, this deletes rows with unknown rows.
+
+    Parameters
+    ----------
+    path_to_single_vcf : str
+        Path to the single .vcf file.
+    unknown_gene_names: list[str]
+        List of "gene names" to delete.
+
+    Returns
+    -------
+    str
+        Path to the single .vcf file.
+    """
     # Read in the dataframe.
     data = pd.read_csv(path_to_single_vcf, delimiter="\t")
 
-    # Remove those genes that are labeled as "NONE".
-    # "NONE" could happen in MASTER, "Unknown" can happen in PCAWG.
-    data = data[(data["GENE"] != "NONE") & (data["GENE"] != "Unknown")]
+    # Remove those genes that are labeled as "NONE" (MASTER) and "Unknown" (PCAWG).
+    data = data[~data["GENE"].isin(unknown_gene_names)].dropna().reset_index(drop=True)
 
-    # Remove those that are NaN in the GENE column.
-    data["GENE"].dropna(inplace=True)
-
-    # Reset the index.
-    data.reset_index(drop=True, inplace=True)
-
+    # Write the .csv file.
     data.to_csv(
         path_to_single_vcf,
         sep="\t", index=False
     )
-
+    
     return path_to_single_vcf
 
 
 @execution_time
-def _remove_indels(path_to_single_vcf: str):
+def _remove_indels(path_to_single_vcf: str) -> str:
+    """Remove rows that are indels, which have either a reference or alternate
+    nucleotide being of length 2+.
 
+    Parameters
+    ----------
+    path_to_single_vcf : str
+        Path to the single .vcf file.
+
+    Returns
+    -------
+    str
+        Path to the single .vcf file.
+    """
     # Read in the dataframe.
     data = pd.read_csv(path_to_single_vcf, delimiter="\t")
 
@@ -121,19 +160,31 @@ def _remove_indels(path_to_single_vcf: str):
     # Reset index.
     data.reset_index(drop=True, inplace=True)
 
+    # Write the .csv file.
     data.to_csv(path_to_single_vcf, sep="\t", index=False)
 
     return path_to_single_vcf
 
 
 @execution_time
-def _remove_snp_and_germline(path_to_single_vcf: str):
+def _remove_snp_and_germline(path_to_single_vcf: str) -> str:
+    """Remove SNP and germline mutations (if applicable).
 
+    Parameters
+    ----------
+    path_to_single_vcf : str
+        Path to the single .vcf file.
+
+    Returns
+    -------
+    str
+        Path to the single .vcf file.
+    """    
     # Read in the dataframe.
     data = pd.read_csv(path_to_single_vcf, delimiter="\t")
 
     # Within DKFZ's SNV Calling Workflow (https://github.com/DKFZ-ODCF/SNVCallingWorkflow/), there's a column called
-    # "RECLASSIFICATION". If labeled "somatic", they're somatic whereas the others are likely not.
+    # "RECLASSIFICATION". If labeled "somatic", they're somatic whereas the others are _likely_ not.
 
     if "RECLASSIFICATION" in list(data.columns):
         data = data[data["RECLASSIFICATION"] == "somatic"]
@@ -145,23 +196,36 @@ def _remove_snp_and_germline(path_to_single_vcf: str):
 
 @execution_time
 def _add_sequence_context_column_to_pcawg_vcf_files(
-    path: str
-):
-    """Because the original PCAWG data files do not have the SEQUENCE_CONTEXT column, create this manually.
+    path_to_single_vcf: str
+) -> str:
+    """Add the sequence context to .vcf files.
+    
+    Because the PCAWG WGS files do not have the SEQUENCE_CONTEXT column, create this manually.
 
     To do so, we take the 'ref_context' column for each line and get the nucleotide that is directly in the middle.
     With this nucleotide, we make sure that this is equal to the reference nucleotide.
 
     With these, we then re-create the SEQUENCE_CONTEXT column by replacing the ref_context at the middle position
     with a "," to emulate the same structure as the MASTER dataset.
+
+    Parameters
+    ----------
+    path_to_single_vcf : str
+        Path to the single .vcf file.
+
+    Returns
+    -------
+    str
+        Path to the single .vcf file.
     """
-    with open(path, "r") as input:
+    
+    with open(path_to_single_vcf, "r") as input:
         original_lines = input.readlines()
 
     if "SEQUENCE_CONTEXT" in original_lines[0]:
-        return path
+        return path_to_single_vcf
 
-    with open(path, "w") as output:
+    with open(path_to_single_vcf, "w") as output:
         # Write the new header to the output file.
         input_header = original_lines[0]
         output_header = input_header.replace("\n", "\t") + "SEQUENCE_CONTEXT\n"
@@ -186,7 +250,7 @@ def _add_sequence_context_column_to_pcawg_vcf_files(
                 output.write(
                     line.replace("\n", "\t") + sequence_context + "\n"
                 )
-    return path
+    return path_to_single_vcf
 
 
 def _get_fimo_output(
@@ -392,6 +456,26 @@ def run_fimo(
     name_of_jaspar_column: str = "JASPAR2020_CORE_vertebrates_non-redundant",
     save_tfbs_dict: bool = True,
 ):
+    """_summary_
+
+    Parameters
+    ----------
+    path_to_vcf_file : str
+        _description_
+    path_to_fimo : str, optional
+        _description_, by default "/home/n795d/meme/bin/fimo"
+    path_to_jaspar_database : str, optional
+        _description_, by default "/home/n795d/workspace/REMIND-Cancer/data/general_input_files/JASPAR2020_CORE_vertebrates_non-redundant_pfms_meme.txt"
+    name_of_jaspar_column : str, optional
+        _description_, by default "JASPAR2020_CORE_vertebrates_non-redundant"
+    save_tfbs_dict : bool, optional
+        _description_, by default True
+
+    Returns
+    -------
+    _type_
+        _description_
+    """    
     assert os.path.exists(
         path_to_vcf_file), "Path to .vcf file does not exist."
     assert os.path.exists(path_to_fimo), "Path to fimo file does not exist."
@@ -426,6 +510,7 @@ def run_fimo(
         with open(output_path_of_saved_tfbs_dict, "w") as f:
             json.dump(tfbs_dictionary, f)
         print(f"... done.")
+
     data.to_csv(
         path_to_vcf_file, sep="\t", index=False
     )
@@ -508,7 +593,10 @@ def _add_vaf_information_to_final_vcf_files(path_to_vcf, dataset):
             )
             vcf_data.loc[idx, "allele_frequency"] = allele_freq
     elif dataset == "pcawg":
-        vcf_data["allele_frequency"] = vcf_data["i_VAF"]
+        if "i_VAF" in list(vcf_data.columns):
+            vcf_data["allele_frequency"] = vcf_data["i_VAF"]
+        else:
+            vcf_data["allele_frequency"] = 0
 
     vcf_data.to_csv(path_to_vcf, index=None, sep="\t")
     return path_to_vcf
@@ -528,11 +616,11 @@ def _add_purity_information(
         # Within this directory is where the necessary plots are located.
         metadata = pd.read_csv(path_to_metadata)
 
-        pid, cancer_type = _get_pid_from_structured_vcf_path(
+        pid, tumor_origin = _get_pid_from_structured_vcf_path(
             path_to_vcf).split("_")
 
         metadata_row_of_interest = metadata[(metadata["pid"] == pid) & (
-            metadata["cancer_type"] == cancer_type)]
+            metadata["tumor_origin"] == tumor_origin)]
 
         assert metadata_row_of_interest.shape[0] == 1
 
@@ -575,26 +663,27 @@ def _add_purity_information(
     elif dataset == "pcawg":
         # Define the purity files.
         path_to_pcawg_purity_file = config["additional_files"]["pcawg"]["path_to_purity_file"]
-        assert os.path.exists(
-            path_to_pcawg_purity_file), "PCAWG Purity file does not exist."
+        if os.path.exists(path_to_pcawg_purity_file):
+            # Get the PCAWG pid of this file.
+            pid = _get_pid_from_structured_vcf_path(path_to_vcf, True)
 
-        # Get the PCAWG pid of this file.
-        pid = _get_pid_from_structured_vcf_path(path_to_vcf, True)
+            # Load in the dataset and the purity file.
+            data = pd.read_csv(path_to_vcf, delimiter="\t")
+            purity_df = pd.read_csv(path_to_pcawg_purity_file, delimiter="\t")
 
-        # Load in the dataset and the purity file.
-        data = pd.read_csv(path_to_vcf, delimiter="\t")
-        purity_df = pd.read_csv(path_to_pcawg_purity_file, delimiter="\t")
+            # Check if purity already exists as a column.
+            if "purity" in list(data.columns):
+                return path_to_vcf
 
-        # Check if purity already exists as a column.
-        if "purity" in list(data.columns):
-            return path_to_vcf
-
-        # Within the purity dataframe, find the corresponding pid if it exists.
-        if pid in list(purity_df["samplename"]):
-            purity = purity_df[purity_df["samplename"]
-                               == pid].iloc[0]["purity"]
+            # Within the purity dataframe, find the corresponding pid if it exists.
+            if pid in list(purity_df["samplename"]):
+                purity = purity_df[purity_df["samplename"]
+                                == pid].iloc[0]["purity"]
+            else:
+                purity = "not_available"
         else:
-            purity = "not_available"
+            purity = 0
+            path_to_pcawg_purity_file = "not_available"
 
         # Add the purity to all SNVs as its own column.
         data["purity"] = purity
@@ -708,7 +797,7 @@ def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
     cohort_of_sample = pid_to_cohort_dict[pid]
 
     # Get the pids of the same cohort.
-    pids_within_patient_cohort = list(metadata[(metadata["cancer_type"] == "tumor") & (
+    pids_within_patient_cohort = list(metadata[(metadata["tumor_origin"] == "primary_tumor") & (
         metadata["cohort"] == cohort_of_sample)]["pid"])
     print(
         f"Number of pids within patient cohort: {len(pids_within_patient_cohort)}")
@@ -1002,7 +1091,7 @@ def main(
         preprocessed_filename = _pcawg_add_sequence_context(
             preprocessed_filename, path_to_hg19_reference)
 
-    preprocessed_filename = _fix_problematic_genes(preprocessed_filename)
+    preprocessed_filename = _fix_gene_names(preprocessed_filename)
 
     preprocessed_filename = _remove_lines_with_no_gene(preprocessed_filename)
 

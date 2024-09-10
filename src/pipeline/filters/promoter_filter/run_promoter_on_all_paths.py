@@ -13,7 +13,7 @@ if path_to_remind_cancer_folder not in sys.path:
 from src.pipeline.general_helper_functions import (
     _get_pid_from_structured_vcf_path,
     _update_results_json_file, _wait_for_running_and_pending_lsf_cluster_jobs,
-    _submit_bsub_job_and_get_job_id
+    _submit_bsub_job_and_get_job_id, _get_number_of_lines
     )
 
 
@@ -40,16 +40,16 @@ def main(path_to_config: str):
     suffix_to_append_to_vcf = config["promoter"]["suffix_to_append_to_vcf"]
 
     # Get the four relevant lists of paths.
-    paths_to_tumor_snv_data = results["results"][previous_step]["tumor_snv"]
-    paths_to_tumor_snv_and_ge_data = results["results"][previous_step]["tumor_snv_and_ge"]
-    paths_to_metastasis_snv_data = results["results"][previous_step]["metastasis_snv"]
-    paths_to_metastasis_snv_and_ge_data = results["results"][previous_step]["metastasis_snv_and_ge"]
+    paths_to_tumor_snv_data = results["results"][previous_step]["primary_tumor_wgs"]
+    paths_to_tumor_snv_and_ge_data = results["results"][previous_step]["primary_tumor_wgs_and_rnaseq"]
+    paths_to_metastasis_snv_data = results["results"][previous_step]["metastasic_tumor_wgs"]
+    paths_to_metastasis_snv_and_ge_data = results["results"][previous_step]["metastasic_tumor_wgs_and_rnaseq"]
     
     paths_and_keys = (
-        (paths_to_tumor_snv_data, "tumor_snv"),
-        (paths_to_tumor_snv_and_ge_data, "tumor_snv_and_ge"),
-        (paths_to_metastasis_snv_data, "metastasis_snv"),
-        (paths_to_metastasis_snv_and_ge_data, "metastasis_snv_and_ge"),
+        (paths_to_tumor_snv_data, "primary_tumor_wgs"),
+        (paths_to_tumor_snv_and_ge_data, "primary_tumor_wgs_and_rnaseq"),
+        (paths_to_metastasis_snv_data, "metastasic_tumor_wgs"),
+        (paths_to_metastasis_snv_and_ge_data, "metastasic_tumor_wgs_and_rnaseq"),
     )
         
     for paths, key in paths_and_keys:

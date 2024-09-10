@@ -41,16 +41,16 @@ def main(path_to_config: str):
     suffix_to_append_to_vcf = config["ge_filter"]["suffix_to_append_to_vcf"]
 
     # Get the four relevant lists of paths.
-    paths_to_tumor_snv_data = results["results"][previous_step]["tumor_snv"]
-    paths_to_tumor_snv_and_ge_data = results["results"][previous_step]["tumor_snv_and_ge"]
-    paths_to_metastasis_snv_data = results["results"][previous_step]["metastasis_snv"]
-    paths_to_metastasis_snv_and_ge_data = results["results"][previous_step]["metastasis_snv_and_ge"]
+    paths_to_tumor_snv_data = results["results"][previous_step]["primary_tumor_wgs"]
+    paths_to_tumor_snv_and_ge_data = results["results"][previous_step]["primary_tumor_wgs_and_rnaseq"]
+    paths_to_metastasis_snv_data = results["results"][previous_step]["metastasic_tumor_wgs"]
+    paths_to_metastasis_snv_and_ge_data = results["results"][previous_step]["metastasic_tumor_wgs_and_rnaseq"]
     
     paths_and_keys = (
-        (paths_to_tumor_snv_data, "tumor_snv"),
-        (paths_to_tumor_snv_and_ge_data, "tumor_snv_and_ge"),
-        (paths_to_metastasis_snv_data, "metastasis_snv"),
-        (paths_to_metastasis_snv_and_ge_data, "metastasis_snv_and_ge"),
+        (paths_to_tumor_snv_data, "primary_tumor_wgs"),
+        (paths_to_tumor_snv_and_ge_data, "primary_tumor_wgs_and_rnaseq"),
+        (paths_to_metastasis_snv_data, "metastasic_tumor_wgs"),
+        (paths_to_metastasis_snv_and_ge_data, "metastasic_tumor_wgs_and_rnaseq"),
     )
         
     for paths, key in paths_and_keys:
@@ -113,7 +113,7 @@ def main(path_to_config: str):
 
     # Create a list to store DataFrames of each remaining sample.
     dfs = []
-    for file_path in tqdm(results["results"][last_filter_step]["tumor_snv_and_ge"], desc="Reading CSVs"):
+    for file_path in tqdm(results["results"][last_filter_step]["primary_tumor_wgs_and_rnaseq"], desc="Reading CSVs"):
         dfs.append(pd.read_csv(file_path, delimiter="\t"))
     
     # Concat the dataframes into a single file.

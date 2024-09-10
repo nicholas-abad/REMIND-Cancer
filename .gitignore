@@ -8,8 +8,6 @@ meme-*/*
 *.png
 
 # Ignore all .txt and .csv files
-*.txt
-*.bed
 *.gz
 *.pdf
 *.vcf
