@@ -199,7 +199,7 @@ def _create_dictionary_for_pids_in_cohort(path_to_metadata):
     cohort_dict[cohort1] = [pid1, pid2, ...]
     """
     metadata = pd.read_csv(path_to_metadata)
-    primary_tumor_df = metadata[(metadata["cancer_type"] == "tumor")]
+    primary_tumor_df = metadata[(metadata["tumor_origin"] == "primary_tumor")]
     primary_tumor_df.reset_index(inplace=True, drop=True)
 
     cohort_dict = primary_tumor_df.groupby(

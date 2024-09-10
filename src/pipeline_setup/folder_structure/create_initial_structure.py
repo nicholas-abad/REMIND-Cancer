@@ -20,29 +20,26 @@ def main(path_to_config: str):
     # to the folder structure that's applicable with the REMIND-Cancer Pipeline.
     output_path_to_patient_folders = config["pipeline_folder_setup"][dataset]["output_path_to_patient_folders"]
     
-    # Define an extra suffix to add to indicate the "original" SNV files.
-    # NOTE: The "original" SNV files refers to the copied version that will be within 'output_path_to_patient_folders' 
-    ending_of_original_files = config["pipeline_folder_setup"][dataset]["ending_suffix_to_add_to_original_files"]
-
     # Create the folder structure.
+    print("#### (1/2) CREATING FOLDER STRUCTURE ####")
     create_new_structure(
         path_to_metadata_dataframe = path_to_metadata_dataframe,
-        path_to_patient_folders = output_path_to_patient_folders,
-        ending_of_original_files = ending_of_original_files    
+        output_path_to_patient_folders = output_path_to_patient_folders,
     )
 
     # Create the initial .json file that will be used throughout the pipeline.
+    print("#### (2/2) CREATING .JSON FILE ####")
     create_json_file(
         path_to_metadata_dataframe = path_to_metadata_dataframe,
         path_to_patient_folders = output_path_to_patient_folders,
-        path_to_results_json_file = output_path_to_results_json_file,
-        ending_of_original_files = ending_of_original_files,
+        output_path_to_results_json_file = output_path_to_results_json_file,
     )
     
 if __name__ == "__main__":
     parser = OptionParser()
     parser.add_option(
         "--path-to-config",
+        "-c",
         action="store",
         type="str",
         dest="config",
