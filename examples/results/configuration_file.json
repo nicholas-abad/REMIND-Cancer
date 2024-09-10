@@ -1,0 +1,133 @@
+{
+    "pipeline": {
+        "dataset": "pcawg",
+        "prospective": false,
+        "initial_steps": [
+            "initial_structure",
+            "preprocessing"
+        ],
+        "filter_order": [
+            "promoter_filter",
+            "motif_and_tf_expression_filter",
+            "ge_filter"
+         ],
+        "additional_annotations": [
+            "cgc_annotation",
+            "chromhmm_annotation",
+            "recurrence_annotation"
+        ],
+        "post_pipeline_steps": [
+            "postprocessing"
+        ],
+        "path_to_results": "/home/n795d/workspace/REMIND-Cancer/results.json",
+        "path_to_metadata": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/metadata_50.csv",
+        "run_on_cluster": true
+    },
+    "pipeline_folder_setup": {
+        "pcawg":{
+            "output_path_to_patient_folders": "/home/n795d/workspace/REMIND-Cancer/examples/results/data"
+        }
+    },
+    "rnaseq_data": {
+        "rnaseq_measurement": "FPKM",
+        "pcawg": {
+            "path_to_rnaseq_dataframe": "/home/n795d/workspace/REMIND-Cancer/examples/data/rna_seq_data/_fpkm_dataframe.csv"
+        }
+    },
+    "additional_files": {
+        "pcawg": {
+            "path_to_purity_file": "not_available"
+        },
+        "tss_reference_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/gencodev19_with_promoter_start_and_end.csv"
+    },
+    "preprocessing_details": {
+        "suffix_to_append_to_vcf": "_after_preprocessing.vcf",
+        "transcription_factor_prediction": {
+            "path_to_fimo_executable": "/home/n795d/meme/bin/fimo",
+            "path_to_jaspar_database": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/JASPAR2020_CORE_vertebrates_non-redundant_pfms_meme.txt",
+            "name_of_tfbs_prediction_column_to_add": "JASPAR2020_CORE_vertebrates_non-redundant",
+            "save_tfbs_dictionary": true
+        },
+        "pcawg": {
+            "path_to_genome_reference_fa_file": "/omics/groups/OE0436/data/nabad/hg19.fa"
+        }
+    },
+    "promoter": {
+        "suffix_to_append_to_vcf": "_after_promoter_1000up_500down.vcf",
+        "upstream_of_tss": 1000,
+        "downstream_of_tss": 500
+    },
+    "ge_filter": {
+        "suffix_to_append_to_vcf": "_after_ge_filter.vcf",
+        "threshold": 0,
+        "column_name_to_filter": "FPKM_Z_score"
+    },
+    "motif_and_tf_expression_filter": {
+        "suffix_to_append_to_vcf": "_after_tf_and_motif_filter.vcf",
+        "tfbs_creation_threshold": 11,
+        "tfbs_destruction_threshold": 0.09,
+        "tf_expression_measure_to_filter": "raw",
+        "tf_expression_threshold": 0
+    },
+    "recurrence": {
+        "suffix_to_append_to_vcf": "_after_rec.vcf",
+        "compute_recurrence_with_current_dataset": true,
+        "additional_recurrence_datasets_to_add": [
+            ["pcawg", "path_to_recurrence_dictionary"]
+        ],
+        "name_of_column_to_add": "paths_with_recurrence(format=path,pid,cohort,bp,ref,alt,gene,chr,raw_score,zscore,log_score,confidence,purity,af)"
+    },
+    "open_chromatin": {
+        "suffix_to_append_to_vcf": "_with_chromatin_info.vcf",
+        "path_to_chromhmm_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/chromhmm_reduced.bed"
+    },
+    "cgc": {
+        "suffix_to_append_to_vcf": "_with_cgc_info.vcf",
+        "path_to_cgc_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/cgc_list_Nov_11_15_24_06_2020.csv"
+    },
+    "post_processing": {
+        "suffix_to_append_to_vcf": "_after_postprocessing.vcf",
+        "transcription_factor_information": {
+            "path_to_downloaded_jaspar_file": "/home/n795d/workspace/REMIND-Cancer/examples/data/annotations/jaspar_tfs.json"
+        },
+        "ncbi_information": {
+            "path_to_gene_name_and_description_file": "examples/data/annotations/gene_name_to_id_and_summary.json"
+        }
+    },
+    "REMIND-Cancer_scoring_weights": {
+        "genomic": {
+            "tfbs": {
+                "creation_weight_per_tfbs": 2,
+                "creation_weight_maximum": 6,
+                "destruction_weight_per_tfbs": 2,
+                "destruction_weight_maximum": 6
+            },
+            "recurrence": {
+                "weight_per_recurrent_mutation": 5,
+                "weight_maximum": 25
+            },
+            "purity": {
+                "purity_threshold_for_weight": 0.25,
+                "purity_weight": 10
+            },
+            "allele_frequency": {
+                "af_threshold_for_weight": 0.3,
+                "af_weight": 10
+            }       
+        },
+        "transcriptomic": {
+            "gene_expression": {
+                "weight_per_unit_of_expression": 5,
+                "weight_maximum": 25
+            }
+        },
+        "annotations": {
+            "open_chromatin": {
+                "weight": 20
+            },
+            "cgc": {
+                "weight": 15
+            }
+        }
+    } 
+}

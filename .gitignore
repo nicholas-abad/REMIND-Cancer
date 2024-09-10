@@ -6,11 +6,8 @@ meme-*/*
 
 # Ignore plots
 *.png
-
-# Ignore all .txt and .csv files
 *.gz
 *.pdf
-*.json
 *.html
 *.sh
 
@@ -22,7 +19,6 @@ results/*/*.html
 # Ignore all .pyc files
 *.pyc
 
-src/pipeline_setup/metadata/*
 
 # Do NOT ignore
 !readme.txt
