@@ -10,7 +10,6 @@ meme-*/*
 # Ignore all .txt and .csv files
 *.gz
 *.pdf
-*.vcf
 *.json
 *.html
 *.sh
