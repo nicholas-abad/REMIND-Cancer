@@ -27,3 +27,5 @@ examples/results/*.csv
 !example_data/*/*.txt
 !requirements.txt
 !src/configs/*
+
+.DS_Store
