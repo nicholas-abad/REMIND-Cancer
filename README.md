@@ -17,5 +17,11 @@ Authors: [Nicholas Abad](https://github.com/nicholas-abad)<sup>1,2</sup>, Irina 
 ## Abstract
 Cancer is a heterogeneous disease caused by genetic alterations. The computational analysis of cancer genomes led to the expansion of the catalog of functional mutations. While individual high-impact mutations have been discovered also in gene promoters, frequency-based approaches have only characterized a few candidates so far. To facilitate the identification of rare activating promoter mutations in cancer, we developed a filtering-based computational workflow and applied it to the Pan Cancer Analysis of Whole genomes (PCAWG) dataset. Predicted mutations were investigated using our new visualization framework, pSNV Hunter and prioritized for functional validation by luciferase assay. Here, we positively validated seven candidate pSNVs in vitro, including mutations within the promoters of ANKRD53 and MYB. Our analysis indicates that co-alterations, such as the overexpression or activation of the transcription factors, impact the effectiveness of functional pSNVs. Our analysis more than doubles the number of validated activating promoter mutations in cancer and demonstrates the effectiveness of our filtering pipeline, as well as, pSNV Hunter.
 
+## Additional Repositories
+The publication references three additional tools that can be found at the following links:
+- [pSNV Hunter](https://github.com/nicholas-abad/pSNV-hunter): Comprehensive visualization tool / dashboard to investigate and select Promoter SNVs (pSNVs) for downstream validation
+- [Deep Pileup](https://github.com/nicholas-abad/deep-pileup-wrapper): A quality control approach for evaluating individual genomic loci for potential signal noise
+- [Genome Tornado Plots Wrapper](https://github.com/nicholas-abad/genome-tornado-plot-wrapper): Analyzing Copy Number Variation (CNV) Events within the PCAWG dataset via GenomeTornadoPlot
+
 ## Contact:
 - Please contact Nicholas Abad (nicholas.a.abad@gmail.com) if you have any questions, comments or concerns.
