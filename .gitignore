@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 # Ignore results folders used during testing.
 examples/results/20March2025
 examples/results/21March2025
 examples/results/data
 
 paper_figures/data/pcawg_and_eopc_fpkm.tsv
+=======
+# Ignore CSV files (but keep zipped files)
+examples/data/rna_seq_data/_fpkm_dataframe.csv
+
+# Ignore results folders used during testing.
+examples/results/20March2025
+examples/results/21March2025
+>>>>>>> b8fc70b (adding pvalues data)
 
 # Ignore meme files
 meme-*/*
