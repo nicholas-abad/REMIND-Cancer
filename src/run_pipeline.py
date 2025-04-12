@@ -1,11 +1,9 @@
 import warnings
-warnings.simplefilter(action='ignore')
-
 import json
 import time
-from optparse import OptionParser
+import argparse
 
-# from pipeline_setup.folder_structure import create_initial_structure
+warnings.simplefilter(action='ignore')
 
 from pipeline.preprocessing import run_preprocessing_on_all_paths
 from pipeline.filters.ge_filter import run_ge_on_all_paths
@@ -16,77 +14,135 @@ from pipeline.annotations.chromhmm import add_chromhmm_to_all_paths
 from pipeline.annotations.recurrence import add_recurrence_to_all_paths
 from pipeline.postprocessing import run_postprocessing_on_all_paths
 
+def run_initial_steps(config_path):
+    """
+    Runs the initial pipeline steps based on the provided configuration.
+
+    Parameters
+    ----------
+    config : str
+        The pipeline configuration loaded from a JSON file.
+
+    Raises
+    ------
+    ValueError
+        If an invalid initial step is encountered.
+    """
+    with open(config_path, "r") as f:
+        config = json.load(f)
+    
+    for step in config["pipeline"]["initial_steps"]:
+        print(f"####### {step.upper()} #######")
+        if step.lower() == "initial_structure":
+            pass  # Placeholder for future implementation
+        elif step.lower() == "preprocessing":
+            run_preprocessing_on_all_paths.main(config_path)
+        else:
+            raise ValueError(f"Invalid initial step: {step}")
+
+def run_filters(config_path):
+    """
+    Runs filtering steps in the pipeline.
+
+    Parameters
+    ----------
+    config : str
+        The pipeline configuration loaded from a JSON file.
+
+    Raises
+    ------
+    ValueError
+        If an invalid filter step is encountered.
+    """
+    with open(config_path, "r") as f:
+        config = json.load(f)
+    
+    for filter_step in config["pipeline"]["filter_order"]:
+        print(f"####### {filter_step.upper()} #######")
+        if filter_step.lower() == "promoter_filter":
+            run_promoter_on_all_paths.main(config_path)
+        elif filter_step.lower() == "ge_filter":
+            run_ge_on_all_paths.main(config_path)
+        elif filter_step.lower() == "motif_and_tf_expression_filter":
+            run_all_motif_and_tf_expression_on_all_paths.main(config_path)
+        else:
+            raise ValueError(f"Invalid filter: {filter_step}")
+
+def run_annotations(config_path):
+    """
+    Runs annotation steps in the pipeline.
+
+    Parameters
+    ----------
+    config : str
+        The pipeline configuration loaded from a JSON file.
+
+    Raises
+    ------
+    ValueError
+        If an invalid annotation step is encountered.
+    """
+    with open(config_path, "r") as f:
+        config = json.load(f)
+    
+    for annotation in config["pipeline"]["additional_annotations"]:
+        print(f"####### {annotation.upper()} #######")
+        if annotation.lower() == "cgc_annotation":
+            add_cgc_to_all_paths.main(config_path)
+        elif annotation.lower() == "chromhmm_annotation":
+            add_chromhmm_to_all_paths.main(config_path)
+        elif annotation.lower() == "recurrence_annotation":
+            add_recurrence_to_all_paths.main(config_path)
+        else:
+            raise ValueError(f"Invalid annotation: {annotation}")
+
+def run_post_pipeline_steps(config_path):
+    """
+    Runs post-processing steps in the pipeline.
+
+    Parameters
+    ----------
+    config : str
+        The pipeline configuration loaded from a JSON file.
+
+    Raises
+    ------
+    ValueError
+        If an invalid post-processing step is encountered.
+    """
+    with open(config_path, "r") as f:
+        config = json.load(f)
+        
+    for step in config["pipeline"]["post_pipeline_steps"]:
+        print(f"####### {step.upper()} #######")
+        if step.lower() == "postprocessing":
+            run_postprocessing_on_all_paths.main(config_path)
+        else:
+            raise ValueError(f"Invalid post-pipeline step: {step}")
+
+def main(config_path):
+    """
+    Runs the full pipeline based on the provided configuration file.
+
+    Parameters
+    ----------
+    config_path : str
+        Path to the configuration JSON file.
+    """
+    start_time = time.time()
+    
+    print("\nStarting Pipeline Execution...\n")
+
+    run_initial_steps(config_path)
+    run_filters(config_path)
+    run_annotations(config_path)
+    run_post_pipeline_steps(config_path)
+    
+    print("\nPipeline execution complete. Total time: {:.2f} seconds".format(time.time() - start_time))
 
 if __name__ == "__main__":
-    starting_time = time.time()
-    parser = OptionParser()
-    parser.add_option(
-        "-c",
-        "--config",
-        action="store",
-        type="str",
-        dest="config",
-        help="Path to the configuration file.\n",
-    )
-
-    (options, args) = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Run the REMIND-Cancer Pipeline")
+    parser.add_argument("-c", "--config", required=True, help="Path to the configuration file.")
     
-    # Turn configuration file into a dictionary.
-    with open(options.config, "r") as f:
-        config = json.load(f)
-
-    # Run intial steps.
-    initial_steps = config["pipeline"]["initial_steps"]
-    for step in initial_steps:
-        if step.lower() == "initial_structure":
-            print("####### initial structure #######")
-            # create_initial_structure.main(options.config)
-        elif step.lower() == "preprocessing":
-            print("####### preprocessing #######")
-            # run_preprocessing_on_all_paths.main(options.config)
-        else:
-            assert False, f"The step '{step}' does not exist."
-
-    # Run pipeline.
-    filter_order = config["pipeline"]["filter_order"]
-    for filter in filter_order:
-        if filter.lower() == "promoter_filter":
-            print("####### promoter_filter #######")
-            # run_promoter_on_all_paths.main(options.config)
-        elif filter.lower() == "ge_filter":
-            print(" ####### GE FILTER ########")
-            # run_ge_on_all_paths.main(options.config)
-        elif filter.lower() == "motif_and_tf_expression_filter":
-            print(" ####### MOTIF AND TF EXPRESSION FILTER ########")
-            # run_all_motif_and_tf_expression_on_all_paths.main(options.config)
-        else:
-            assert False, f"The filter '{filter}' does not exist."
-    
-    # Add additional annotations.
-    annotations_order = config["pipeline"]["additional_annotations"]
-    for annotation in annotations_order:
-        if annotation.lower() == "cgc_annotation":
-            print(" ####### CGC ANNOTATION ########")
-            add_cgc_to_all_paths.main(options.config)
-            
-        elif annotation.lower() == "chromhmm_annotation":
-            print(" ####### Open Chromatin / ChromHMM ANNOTATION ########")
-            add_chromhmm_to_all_paths.main(options.config)
-            
-        elif annotation.lower() == "recurrence_annotation":
-            print(" ####### RECURRENCE ANNOTATION ########")
-            add_recurrence_to_all_paths.main(options.config)
-        else:
-            assert False, f"The annotation '{annotation}' does not exist."
-
-    # Run post-pipeline steps.
-    post_pipeline_steps = config["pipeline"]["post_pipeline_steps"]
-    for step in post_pipeline_steps:
-        print(f"Step: {step}")
-        if step.lower() == "postprocessing":
-            print(" ####### POST PROCESSING ########")
-            run_postprocessing_on_all_paths.main(options.config)
-        else:
-            assert False, f"The step '{step}' does not exist."
-
-    print("Complete pipeline time: ", time.time() - starting_time)
+    args = parser.parse_args()
+    main(args.config)

@@ -480,11 +480,6 @@ def run_fimo(
     _type_
         _description_
     """    
-    assert os.path.exists(
-        path_to_vcf_file), "Path to .vcf file does not exist."
-    assert os.path.exists(path_to_fimo), "Path to fimo file does not exist."
-    assert os.path.exists(
-        path_to_jaspar_database), "Path to jaspar database file does not exist."
 
     ref_output_file, alt_output_file = _get_fimo_output(
         path_to_vcf_file=path_to_vcf_file,
@@ -785,8 +780,7 @@ def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
         "transcription_factor_prediction"]["name_of_tfbs_prediction_column_to_add"]
  
     # Load in the dataframes.
-    rna_seq = pd.read_csv(path_to_rna_seq, delimiter="\t",
-                          index_col="Unnamed: 0")
+    rna_seq = pd.read_csv(path_to_rna_seq, index_col="pid")
     metadata = pd.read_csv(path_to_metadata)
     data = pd.read_csv(path_to_vcf_file, delimiter="\t")
 
@@ -825,10 +819,13 @@ def _add_ge_data_to_genes_and_transcription_factors(path_to_vcf_file, config):
     else:
         # Choose those pids of the rna_seq dataframe that are within pids_within_patient_cohort and subset the rna_seq dataframe.
         rna_seq_of_cohort_raw = rna_seq.loc[pids_within_patient_cohort_with_rna_seq]
-        rna_seq_of_cohort_zscore = zscore(
-            rna_seq_of_cohort_raw, axis=0).fillna(0)
-        genes_with_rnaseq_data = list(rna_seq_of_cohort_raw.columns)
-
+                
+        rna_seq_of_cohort_zscore = pd.DataFrame(
+            zscore(rna_seq_of_cohort_raw, axis=0), 
+            index=rna_seq_of_cohort_raw.index, 
+            columns=rna_seq_of_cohort_raw.columns
+        )
+        
         # Get the RNA-seq column for the raw and zscore dataframes.
         if type(rna_seq_of_cohort_raw.loc[pid]) == pd.DataFrame:
             rna_seq_raw_col = pd.DataFrame(
@@ -1097,8 +1094,6 @@ def main(
             preprocessed_filename)
 
         path_to_hg19_reference = config["preprocessing_details"]["pcawg"]["path_to_genome_reference_fa_file"]
-        preprocessed_filename = _pcawg_add_sequence_context(
-            preprocessed_filename, path_to_hg19_reference)
 
     print('1')
     preprocessed_filename = _fix_gene_names(preprocessed_filename)

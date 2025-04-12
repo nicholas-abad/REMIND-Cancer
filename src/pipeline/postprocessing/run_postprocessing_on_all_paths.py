@@ -132,6 +132,10 @@ def main(path_to_config: str):
     combined_df = combined_df.sort_values("score", ascending=False)
     combined_df.reset_index(drop=True, inplace=True)
     
+    # Sort the dataframe by its score and make it the first column.
+    combined_df.sort_values("score", ascending=False, inplace=True)
+    combined_df = combined_df[["score"] + list(combined_df.columns)[:-1]]
+    
     # Write the file to the same folder as the results.json file.
     directory_name = os.path.dirname(config["pipeline"]["path_to_results"])
     
