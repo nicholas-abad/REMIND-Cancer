@@ -4,6 +4,8 @@
 ![GitHub Release](https://img.shields.io/github/v/release/nicholas-abad/remind-cancer) ![GitHub last commit](https://img.shields.io/github/last-commit/nicholas-abad/remind-cancer) ![GitHub top language](https://img.shields.io/github/languages/top/nicholas-abad/remind-cancer) ![GitHub repo size](https://img.shields.io/github/repo-size/nicholas-abad/remind-cancer)
 
 Authors: [Nicholas Abad](https://github.com/nicholas-abad)<sup>1,2</sup>, Irina Glas<sup>1,3</sup>, [Chen Hong](https://github.com/chenhong-dkfz)<sup>1,4</sup>, Annika Small<sup>3</sup>, [Yoann Pageaud](https://github.com/YoannPa)<sup>1,5</sup>, Ana Maia<sup>3</sup>, Dieter Weichenhan<sup>6</sup>, Christoph Plass<sup>6</sup>, Barbara Hutter<sup>7</sup>, Benedikt Brors<sup>1,8,9,10</sup>, Cindy Körner<sup>3</sup>, Lars Feuerbach<sup>1</sup>
+<br>
+![Github Number of Dependencies](https://img.shields.io/badge/repository_maintainer-nicholas_abad_(nicholas.a.abad@gmail.com)-lightgreen)
 
 <sup>1 Division of Applied Bioinformatics, German Cancer Research Center (DKFZ), Heidelberg, Germany</sup><br>
 <sup>2 Faculty of Engineering Sciences, Heidelberg University, Heidelberg, Germany </sup><br>
