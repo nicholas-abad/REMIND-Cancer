@@ -1,1 +1,1 @@
-For generation of graphs within paper.
+For generation of graphs/plots within publication.
