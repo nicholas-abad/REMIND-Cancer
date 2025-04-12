@@ -60,94 +60,7 @@ Within this subfolder, three validation checks can be ran in order to verify tha
 
 #### Configuration File
 
-This file contains keys and values that the pipeline relies on in order to get proper paths for files, output files and proper endings of intermediate files. An example of this can be found in `REMIND-Camcer/examples/results/21March2025/configuration_file.json`. A brief description of the (sub)keys and values can be seen below:
-
-- `pipeline`
-  - `dataset`: Identifier for the dataset being used (e.g., "pcawg").
-  - `prospective`: Boolean or flag indicating whether the data is prospective.
-  - `initial_steps`: Ordered list of initial steps to perform before filtering (e.g., `preprocessing`).
-  - `filtering_order`: Ordered list of filtering steps, including any combination of `promoter_filter`, `motif_and_tf_expression_filter`, and `ge_filter`.
-  - `additional_annotations`: Ordered list of optional annotations to apply after filtering. Valid values include `cgc_annotations`, `chromhnn_annotations` (for open chromatin), and `recurrence_annotation`. The `recurrence_annotation` evaluates recurrence across all other samples within the analysis.
-  - `post_pipeline_steps`: Ordered list of post-processing steps to apply after annotations. Currently supports `postprocessing`.
-  - `path_to_results`: Output directory where the final `results.csv` should be saved. Refer to the earlier description in this README for file details.
-  - `path_to_metadata`: File path to the metadata file. Its format can be validated using the script at `utils/validate_metadata.py`.
-  - `run_on_cluster`: Internal setting intended for use at the German Cancer Research Center (DKFZ) for optimized execution. This was verified as functional as of 11 October 2024, but future users may need to adjust it for compatibility with new environments.
-  - `pipeline_folder_setup`
-    - `pcawg`: Only relevant when the previously-defined `pipeline.dataset` is equal to "pcawg".
-      - `output_path_to_patient_folders`: The output location of where the copied files from the metadata file will be stored. This will particularly be used within the `pipeline_setup` step.
-  - `rnaseq_data`
-    - `rnaseq_measurement`
-    - `pcawg`
-      - `path_to_rnaseq_dataframe`
-  - `additional_files`
-    - `pcawg`
-      - `path_to_purity_file`
-    - `tss_reference_file`
-  - `preprocessing_details`
-    - `suffix_to_append_to_vcf`
-    - `transcription_factor_prediction`
-      - `path_to_fimo_executable`
-      - `path_to_jaspar_database`
-      - `name_of_tfbs_prediction_column_to_add`
-      - `save_tfbs_dictionary`
-    - `pcawg`
-      - `path_to_genome_reference_fa_file`
-  - `promoter`
-    - `suffix_to_append_to_vcf`
-    - `upstream_of_tss`
-    - `downstream_of_tss`
-  - `ge_filter`
-    - `suffix_to_append_to_vcf`
-    - `threshold`
-    - `column_name_to_filter`
-  - `motif_and_tf_expression_filter`
-    - `suffix_to_append_to_vcf`
-    - `tfbs_creation_threshold`
-    - `tfbs_destruction_threshold`
-    - `tf_expression_measure_to_filter`
-    - `tf_expression_threshold`
-  - `recurrence`
-    - `suffix_to_append_to_vcf`
-    - `compute_recurrence_with_current_dataset`
-    - `additional_recurrence_datasets_to_add`
-    - `name_of_column_to_add`
-  - `open_chromatin`
-    - `suffix_to_append_to_vcf`
-    - `path_to_chromhmm_file`
-  - `cgc`
-    - `suffix_to_append_to_vcf`
-    - `path_to_cgc_file`
-  - `post_processing`
-    - `suffix_to_append_to_vcf`
-    - `transcription_factor_information`
-      - `path_to_downloaded_jaspar_file`
-    - `ncbi_information`
-      - `path_to_gene_name_and_description_file`
-  - `REMIND-Cancer_scoring_weights`
-    - `genomic`
-      - `tfbs`
-        - `creation_weight_per_tfbs`
-        - `creation_weight_maximum`
-        - `destruction_weight_per_tfbs`
-        - `destruction_weight_maximum`
-      - `recurrence`
-        - `weight_per_recurrent_mutation`
-        - `weight_maximum`
-      - `purity`
-        - `purity_threshold_for_weight`
-        - `purity_weight`
-      - `allele_frequency`
-        - `af_threshold_for_weight`
-        - `af_weight`
-    - `transcriptomic`
-      - `gene_expression`
-        - `weight_per_unit_of_expression`
-        - `weight_maximum`
-    - `annotations`
-      - `open_chromatin`
-        - `weight`
-      - `cgc`
-        - `weight`
+This file contains keys and values that the pipeline relies on in order to get proper paths for files, output files and proper endings of intermediate files. An example of this can be found in `REMIND-Camcer/examples/results/21March2025/configuration_file.json`.
 
 #### Metadata file
 
@@ -315,8 +228,6 @@ Filtered files are saved with a configurable suffix (e.g., `_after_motif_and_tf_
 
 - `_run_ge_on_single_file.py`: Filters for mutations that lie within the promoter boundaries (inclusive) and writes a filtered file with the additional suffix to append (`pipeline.promoter.suffix_to_append`).
 - `run_promoter_on_all_paths.py`: Applies the filtering to all mutation files in the current pipeline stage, either locally or via job submission to a compute cluster.
-
-  The filter works by comparing each mutation’s genomic position and gene symbol to promoter intervals defined in a TSS reference file. Mutations that match the same chromosome, gene, and lie within the computed promoter window are retained. The resulting filtered file is saved with a suffix (e.g., `_after_promoter_1000up_500down.vcf`) and its path is updated in `results.json`. This step also considers the positive or negative strand to calculate the promoter regions.
 <br>
 
 #### Annotations
@@ -329,3 +240,21 @@ Filtered files are saved with a configurable suffix (e.g., `_after_motif_and_tf_
   This step determines whether a given mutation recurs across different samples in the dataset or in external datasets. It is composed of two scripts: one (`_add_recurrence_to_single_file.py`) processes a single VCF file by comparing each mutation to recurrence dictionaries—either computed from the current dataset or loaded from external JSONs. Mutations that appear at the same genomic position, with the same alternate allele and gene, but in different patients, are considered recurrent. A summary string of matching entries and a count of recurrent matches are appended as new columns. The second script (`add_recurrence_to_all_paths.py`) loops through all current VCF files in `results.json`, submits the single-file script either locally or to a cluster, and saves the updated output using a configured suffix. The recurrence step supports cohort-specific recurrence tracking and is logged as a new key in `results.json` for downstream use.
 
   Internally, the recurrence step works by identifying mutations that share the same chromosome, genomic position, gene, and alternate allele across different patients. A recurrence dictionary is created from either the current dataset or supplemental datasets (if configured), and mutations are matched against this dictionary. For each match found, the pipeline appends two new columns: one containing a semicolon-separated list of matching mutation metadata (defined within configuration file under `recurrence.name_of_column_to_add`, which defaults to `paths_with_recurrence(format=path,pid,cohort,bp,ref,alt,gene,chr,raw_score,zscore,log_score,confidence,purity,af)`), and another recording the total number of recurrences. This enables downstream scoring steps to weigh recurrent mutations more heavily, improving prioritization of potentially driver events.
+
+
+#### Post-Processing Steps
+ 
+ - **`add_ncbi_and_tf_information`**:  
+   This step enriches the mutation file with descriptions for genes and transcription factors (TFs) based on the NCBI gene summary. For each row in the VCF, both the associated gene and any predicted TFs (extracted from the JASPAR annotation column) are cross-referenced with a user-provided JSON file that maps gene symbols to functional descriptions. A new column, `ncbi_gene_and_tf_summaries`, is added containing this information in dictionary format.
+ 
+ - **`add_tf_logo_plot`**:  
+   Each mutation’s TFBS predictions are further annotated with direct links to JASPAR sequence logo images. These logos help visualize the binding motifs of TFs predicted to be affected by the mutation. If the TF name is found in the downloaded JASPAR metadata, the corresponding sequence logo URL is appended to each entry in the TFBS prediction column.
+ 
+ - **`add_expression_traces`**:  
+   This step aggregates expression data across cohorts for each gene and TF associated with a mutation. For every row, the pipeline identifies recurrent cohorts and relevant genes/TFs, then collects raw, z-score, and log-transformed expression values from the RNA-Seq dataframe. These values are stored in the `expression_traces` column, enabling downstream review of expression variation across cohorts and samples. This step can be toggled off or on depending on memory and processing considerations.
+ 
+ - **`_add_num_original_promoter_and_final_mutations_to_single_patient_path`**:  
+   The pipeline logs how many mutations from each sample survive through different stages of the pipeline. For each mutation, columns are added to indicate the total number of mutations after preprocessing, after promoter filtering, and after the final stage. These counts provide a sense of pipeline attrition and help identify overly stringent filters.
+ 
+ - **`calculate_remind_score`**:  
+   The final scoring function combines multiple weighted features to generate a composite REMIND-Cancer score for each mutation. Genomic features (e.g., TFBS changes, recurrence, purity, allele frequency), transcriptomic expression, and binary annotations (e.g., CGC membership, open chromatin) are aggregated using weights defined in the configuration file. The final score is stored in a column named `score` and is used to rank mutations in the final results CSV.
