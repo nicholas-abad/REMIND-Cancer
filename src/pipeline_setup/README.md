@@ -1,4 +1,4 @@
-# REMIND-Cancer: Folder Structure & Results JSON Setup
+# Setting Up The Pipeline
 
 This script automates the setup of the **REMIND-Cancer** project’s folder structure and the creation of a JSON file to track results. It takes a **configuration file** as input and performs the following:
 

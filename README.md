@@ -1,4 +1,4 @@
-# REMIND-Cancer Filtering Pipeline
+# Overview of the REMIND-Cancer Filtering Pipeline
 
 ## Beyond Recurrence: A Novel Workflow to Identify Activating Promoter Mutations in Cancer Genomes
 ![GitHub Release](https://img.shields.io/github/v/release/nicholas-abad/remind-cancer) ![GitHub last commit](https://img.shields.io/github/last-commit/nicholas-abad/remind-cancer) ![GitHub top language](https://img.shields.io/github/languages/top/nicholas-abad/remind-cancer) ![GitHub repo size](https://img.shields.io/github/repo-size/nicholas-abad/remind-cancer)
