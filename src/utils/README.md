@@ -1,4 +1,4 @@
-# Validation Scripts for REMIND-Cancer
+# Validation / Pre-pipeline Scripts
 
 This subfolder contains three validation scripts designed to ensure the integrity and correctness of configuration, metadata, and RNA-seq dataframe files used in the **REMIND-Cancer** project.
 

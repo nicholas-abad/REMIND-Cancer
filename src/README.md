@@ -1,4 +1,4 @@
-# REMIND-Cancer Pipeline
+# Running the Pipeline: Technical Details and Implementation
 
 ## General Overview
 
@@ -199,7 +199,7 @@ This subfolder contains the different filtering steps of the REMIND-Cancer pipel
 - `run_promoter_on_all_paths.py`: Applies the filtering to all mutation files in the current pipeline stage, either locally or via job submission to a compute cluster.
 
   The filter works by comparing each mutation’s genomic position and gene symbol to promoter intervals defined in a TSS reference file. Mutations that match the same chromosome, gene, and lie within the computed promoter window are retained. The resulting filtered file is saved with a suffix (e.g., `_after_promoter_1000up_500down.vcf`) and its path is updated in `results.json`. This step also considers the positive or negative strand to calculate the promoter regions.
-<br>
+  `<br>`
 
 #### `motif_and_tf_filter`:
 
@@ -224,11 +224,12 @@ Internally, the script parses TFBS annotations (produced during preprocessing vi
 Filtered files are saved with a configurable suffix (e.g., `_after_motif_and_tf_exp_filter.vcf`) and paths are logged in `results.json` under the new pipeline stage.
 
 #### `ge_filter`:
+
   This filter step only keeps mutations that are associated with genes whose expression surpasses a threshold defined within the configuration file (`pipeline.ge_filter.threshold`). As the pipeline is trying to detect pSNVs that lead to a relative _upregulation_, the normalized expression (e.g. FPKM z-score) is, by default, the measurement that will be filtered. Two scripts implement this functionality:
 
 - `_run_ge_on_single_file.py`: Filters for mutations that lie within the promoter boundaries (inclusive) and writes a filtered file with the additional suffix to append (`pipeline.promoter.suffix_to_append`).
 - `run_promoter_on_all_paths.py`: Applies the filtering to all mutation files in the current pipeline stage, either locally or via job submission to a compute cluster.
-<br>
+  `<br>`
 
 #### Annotations
 
@@ -241,20 +242,11 @@ Filtered files are saved with a configurable suffix (e.g., `_after_motif_and_tf_
 
   Internally, the recurrence step works by identifying mutations that share the same chromosome, genomic position, gene, and alternate allele across different patients. A recurrence dictionary is created from either the current dataset or supplemental datasets (if configured), and mutations are matched against this dictionary. For each match found, the pipeline appends two new columns: one containing a semicolon-separated list of matching mutation metadata (defined within configuration file under `recurrence.name_of_column_to_add`, which defaults to `paths_with_recurrence(format=path,pid,cohort,bp,ref,alt,gene,chr,raw_score,zscore,log_score,confidence,purity,af)`), and another recording the total number of recurrences. This enables downstream scoring steps to weigh recurrent mutations more heavily, improving prioritization of potentially driver events.
 
-
 #### Post-Processing Steps
- 
- - **`add_ncbi_and_tf_information`**:  
-   This step enriches the mutation file with descriptions for genes and transcription factors (TFs) based on the NCBI gene summary. For each row in the VCF, both the associated gene and any predicted TFs (extracted from the JASPAR annotation column) are cross-referenced with a user-provided JSON file that maps gene symbols to functional descriptions. A new column, `ncbi_gene_and_tf_summaries`, is added containing this information in dictionary format.
- 
- - **`add_tf_logo_plot`**:  
-   Each mutation’s TFBS predictions are further annotated with direct links to JASPAR sequence logo images. These logos help visualize the binding motifs of TFs predicted to be affected by the mutation. If the TF name is found in the downloaded JASPAR metadata, the corresponding sequence logo URL is appended to each entry in the TFBS prediction column.
- 
- - **`add_expression_traces`**:  
-   This step aggregates expression data across cohorts for each gene and TF associated with a mutation. For every row, the pipeline identifies recurrent cohorts and relevant genes/TFs, then collects raw, z-score, and log-transformed expression values from the RNA-Seq dataframe. These values are stored in the `expression_traces` column, enabling downstream review of expression variation across cohorts and samples. This step can be toggled off or on depending on memory and processing considerations.
- 
- - **`_add_num_original_promoter_and_final_mutations_to_single_patient_path`**:  
-   The pipeline logs how many mutations from each sample survive through different stages of the pipeline. For each mutation, columns are added to indicate the total number of mutations after preprocessing, after promoter filtering, and after the final stage. These counts provide a sense of pipeline attrition and help identify overly stringent filters.
- 
- - **`calculate_remind_score`**:  
-   The final scoring function combines multiple weighted features to generate a composite REMIND-Cancer score for each mutation. Genomic features (e.g., TFBS changes, recurrence, purity, allele frequency), transcriptomic expression, and binary annotations (e.g., CGC membership, open chromatin) are aggregated using weights defined in the configuration file. The final score is stored in a column named `score` and is used to rank mutations in the final results CSV.
+
+- **`add_ncbi_and_tf_information`**:This step enriches the mutation file with descriptions for genes and transcription factors (TFs) based on the NCBI gene summary. For each row in the VCF, both the associated gene and any predicted TFs (extracted from the JASPAR annotation column) are cross-referenced with a user-provided JSON file that maps gene symbols to functional descriptions. A new column, `ncbi_gene_and_tf_summaries`, is added containing this information in dictionary format.
+- **`add_tf_logo_plot`**:Each mutation’s TFBS predictions are further annotated with direct links to JASPAR sequence logo images. These logos help visualize the binding motifs of TFs predicted to be affected by the mutation. If the TF name is found in the downloaded JASPAR metadata, the corresponding sequence logo URL is appended to each entry in the TFBS prediction column.
+- **`add_expression_traces`**:This step aggregates expression data across cohorts for each gene and TF associated with a mutation. For every row, the pipeline identifies recurrent cohorts and relevant genes/TFs, then collects raw, z-score, and log-transformed expression values from the RNA-Seq dataframe. These values are stored in the `expression_traces` column, enabling downstream review of expression variation across cohorts and samples. This step can be toggled off or on depending on memory and processing considerations.
+- **`_add_num_original_promoter_and_final_mutations_to_single_patient_path`**:The pipeline logs how many mutations from each sample survive through different stages of the pipeline. For each mutation, columns are added to indicate the total number of mutations after preprocessing, after promoter filtering, and after the final stage. These counts provide a sense of pipeline attrition and help identify overly stringent filters.
+- **`calculate_remind_score`**:
+  The final scoring function combines multiple weighted features to generate a composite REMIND-Cancer score for each mutation. Genomic features (e.g., TFBS changes, recurrence, purity, allele frequency), transcriptomic expression, and binary annotations (e.g., CGC membership, open chromatin) are aggregated using weights defined in the configuration file. The final score is stored in a column named `score` and is used to rank mutations in the final results CSV.

@@ -19,5 +19,6 @@ documentation for details.
    src/README.md
    src/utils/README.md
    src/pipeline_setup/README.md
+   src/pipeline/README.md
    paper/README.md
    examples/README.md
