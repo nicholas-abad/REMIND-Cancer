@@ -25,3 +25,14 @@ The publication references three additional tools that can be found at the follo
 
 ## Contact:
 - Please contact Nicholas Abad (nicholas.a.abad@gmail.com) if you have any questions, comments or concerns.
+
+```{toctree}
+:maxdepth: 2
+:caption: Contents:
+
+src/README.md
+paper/README.md
+examples/README.md
+src/pipeline_setup/README.md
+src/utils/README.md
+```
