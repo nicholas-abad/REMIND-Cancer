@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-REMIND-Cancer documentation
+Documentation for the REMIND-Cancer Filtering Pipeline
 ===========================
 
 Add your content using ``reStructuredText`` syntax. See the
@@ -11,11 +11,13 @@ Add your content using ``reStructuredText`` syntax. See the
 documentation for details.
 
 
-```{toctree}
-:maxdepth: 2
-:caption: Contents:
-
-src/README.md
-paper/README.md
-examples/README.md
-```
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents:
+   
+   README.md
+   src/README.md
+   src/utils/README.md
+   src/pipeline_setup/README.md
+   paper/README.md
+   examples/README.md
