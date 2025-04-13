@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="../../">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Validation Scripts for REMIND-Cancer &#8212; REMIND-Cancer 1.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=5ecbeea2" />
+    <link rel="stylesheet" type="text/css" href="../../_static/basic.css?v=b08954a9" />
+    <link rel="stylesheet" type="text/css" href="../../_static/alabaster.css?v=27fed22d" />
+    <script src="../../_static/documentation_options.js?v=f2a433a1"></script>
+    <script src="../../_static/doctools.js?v=9bcbadda"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" />
+   
+  <link rel="stylesheet" href="../../_static/custom.css" type="text/css" />
+  
+
+  
+  
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <section id="validation-scripts-for-remind-cancer">
+<h1>Validation Scripts for REMIND-Cancer<a class="headerlink" href="#validation-scripts-for-remind-cancer" title="Link to this heading">¶</a></h1>
+<p>This subfolder contains three validation scripts designed to ensure the integrity and correctness of configuration, metadata, and RNA-seq dataframe files used in the <strong>REMIND-Cancer</strong> project.</p>
+<hr class="docutils" />
+<section id="validate-configuration-file-py">
+<h2><strong>1. <code class="docutils literal notranslate"><span class="pre">validate_configuration_file.py</span></code></strong><a class="headerlink" href="#validate-configuration-file-py" title="Link to this heading">¶</a></h2>
+<p>This script validates paths in the configuration file to ensure they exist and are correctly formatted.</p>
+<section id="usage">
+<h3><strong>Usage:</strong><a class="headerlink" href="#usage" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>src/utils/validate_configuration_file.py<span class="w"> </span>-c<span class="w"> </span>path/to/configuration_file.json
+</pre></div>
+</div>
+</section>
+<section id="checks-performed">
+<h3><strong>Checks Performed:</strong><a class="headerlink" href="#checks-performed" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Ensures the configuration file exists.</p></li>
+<li><p>Verifies that paths (except <code class="docutils literal notranslate"><span class="pre">path_to_results</span></code>) are valid.</p></li>
+<li><p>Checks if <code class="docutils literal notranslate"><span class="pre">path_to_fimo_executable</span></code> is an executable file.</p></li>
+<li><p>Reports missing or incorrectly formatted paths.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="validate-metadata-file-py">
+<h2><strong>2. <code class="docutils literal notranslate"><span class="pre">validate_metadata_file.py</span></code></strong><a class="headerlink" href="#validate-metadata-file-py" title="Link to this heading">¶</a></h2>
+<p>This script validates a metadata CSV file by checking required columns and ensuring referenced files exist.</p>
+<section id="id1">
+<h3><strong>Usage:</strong><a class="headerlink" href="#id1" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>src/utils/validate_metadata_file.py<span class="w"> </span>-m<span class="w"> </span>path/to/metadata.csv
+</pre></div>
+</div>
+</section>
+<section id="id2">
+<h3><strong>Checks Performed:</strong><a class="headerlink" href="#id2" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Ensures the metadata file exists.</p></li>
+<li><p>Confirms required columns exist:<code class="docutils literal notranslate"><span class="pre">pid</span></code>, <code class="docutils literal notranslate"><span class="pre">tumor_origin</span></code>, <code class="docutils literal notranslate"><span class="pre">path_to_wgs_file</span></code>, <code class="docutils literal notranslate"><span class="pre">cohort</span></code>, <code class="docutils literal notranslate"><span class="pre">ge_data_available</span></code>.</p></li>
+<li><p>Verifies whether all <code class="docutils literal notranslate"><span class="pre">path_to_wgs_file</span></code> entries exist.</p></li>
+<li><p>Checks the validity of corresponding VCF files (expects <code class="docutils literal notranslate"><span class="pre">.vcf</span></code> filenames based on <code class="docutils literal notranslate"><span class="pre">.wgs</span></code> entries).</p></li>
+<li><p>Prints the number of valid WGS and VCF files.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="validate-rnaseq-dataframe-py">
+<h2><strong>3. <code class="docutils literal notranslate"><span class="pre">validate_rnaseq_dataframe.py</span></code></strong><a class="headerlink" href="#validate-rnaseq-dataframe-py" title="Link to this heading">¶</a></h2>
+<p>This script validates an RNA-seq dataframe to ensure correct formatting and column structure.</p>
+<section id="id3">
+<h3><strong>Usage:</strong><a class="headerlink" href="#id3" title="Link to this heading">¶</a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span>src/utils/validate_rnaseq_dataframe.py<span class="w"> </span>-r<span class="w"> </span>path/to/rnaseq.csv
+</pre></div>
+</div>
+</section>
+<section id="id4">
+<h3><strong>Checks Performed:</strong><a class="headerlink" href="#id4" title="Link to this heading">¶</a></h3>
+<ul class="simple">
+<li><p>Ensures the RNA-seq file exists.</p></li>
+<li><p>Confirms that the file is comma-separated.</p></li>
+<li><p>Verifies the presence of the <code class="docutils literal notranslate"><span class="pre">pid</span></code> column.</p></li>
+<li><p>Counts and prints the number of <strong>PIDs</strong> and <strong>genes</strong>.</p></li>
+</ul>
+</section>
+</section>
+<hr class="docutils" />
+<section id="general-notes">
+<h2><strong>General Notes</strong><a class="headerlink" href="#general-notes" title="Link to this heading">¶</a></h2>
+<ul>
+<li><p>Ensure you have <strong>Python 3.x</strong> installed.</p></li>
+<li><p>Install dependencies using:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pip<span class="w"> </span>install<span class="w"> </span>-r<span class="w"> </span>requirements.txt
+</pre></div>
+</div>
+</li>
+<li><p>Modify file paths accordingly before running scripts.</p></li>
+</ul>
+<p>These validation scripts help maintain data integrity and prevent issues before running further analyses.</p>
+</section>
+</section>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="../../index.html">REMIND-Cancer</a></h1>
+
+
+
+
+
+
+
+
+
+<search id="searchbox" style="display: none" role="search">
+    <div class="searchformwrapper">
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Search"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</search>
+<script>document.getElementById('searchbox').style.display = "block"</script><h3>Navigation</h3>
+
+<div class="relations">
+<h3>Related Topics</h3>
+<ul>
+  <li><a href="../../index.html">Documentation overview</a><ul>
+  </ul></li>
+</ul>
+</div>
+
+
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &#169;2025, Nicholas Allen Baclig Abad.
+      
+      |
+      Powered by <a href="https://www.sphinx-doc.org/">Sphinx 8.2.3</a>
+      &amp; <a href="https://alabaster.readthedocs.io">Alabaster 1.0.0</a>
+      
+      |
+      <a href="../../_sources/src/utils/README.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+
+    
+  </body>
+</html>
